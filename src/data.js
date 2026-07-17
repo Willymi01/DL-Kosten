@@ -110,3 +110,51 @@ export function subscribeToChanges(onChange) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'monthly_budgets' }, onChange)
     .subscribe()
 }
+
+
+export async function getAllEntries() {
+  const { data, error } = await supabase
+    .from('time_entries')
+    .select('id, work_date, hours, note, vendor_id, rate_id, vendors(name,color), vendor_rates(name,hourly_rate,effective_from,effective_to)')
+    .order('work_date')
+  if (error) throw error
+  return data ?? []
+}
+
+export async function getAllBudgets() {
+  const { data, error } = await supabase
+    .from('monthly_budgets')
+    .select('id, year, month, amount')
+    .order('year')
+    .order('month')
+  if (error) throw error
+  return data ?? []
+}
+
+export async function importEntries(entries) {
+  if (!entries.length) return
+  const payload = entries.map(entry => ({
+    vendor_id: entry.vendor_id,
+    rate_id: entry.rate_id,
+    work_date: entry.work_date,
+    hours: Number(entry.hours || 0),
+    note: entry.note || null
+  }))
+  const { error } = await supabase
+    .from('time_entries')
+    .upsert(payload, { onConflict: 'user_id,vendor_id,rate_id,work_date' })
+  if (error) throw error
+}
+
+export async function importBudgets(budgets) {
+  if (!budgets.length) return
+  const payload = budgets.map(item => ({
+    year: Number(item.year),
+    month: Number(item.month),
+    amount: Number(item.amount || 0)
+  }))
+  const { error } = await supabase
+    .from('monthly_budgets')
+    .upsert(payload, { onConflict: 'user_id,year,month' })
+  if (error) throw error
+}

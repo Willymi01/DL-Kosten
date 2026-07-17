@@ -86,3 +86,31 @@ Neu auf dem Dashboard:
 - Monat-zu-Monat-Vergleich
 - erweiterte Jahresprognose bleibt vollständig erhalten
 - keine neue Supabase-Migration notwendig
+
+
+## Version 12 – Berichte, Import und Sicherung
+
+Neu:
+
+- PDF-Monatsbericht
+- Excel-Export mit Monatsübersicht, Zeiterfassung und Jahresplänen
+- Excel-/CSV-Import mit Vorschau und Fehlerprüfung
+- JSON-Gesamtbackup
+- Wiederherstellung aus einem CostPilot-Backup
+- eigener Bereich „Berichte & Import“
+- keine neue Supabase-Migration erforderlich
+
+### Excel-Importspalten
+
+Pflicht:
+
+- Datum
+- Dienstleister
+- Arbeitsbereich
+- Stunden
+
+Optional:
+
+- Notiz
+
+Dienstleister und Arbeitsbereich müssen vor dem Import bereits angelegt sein.

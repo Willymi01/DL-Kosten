@@ -10,6 +10,7 @@ import { authScreen, passwordUpdateScreen } from './auth-ui.js'
 import { renderDashboard } from './views/dashboard.js'
 import { renderEntry } from './views/entry.js'
 import { renderVendors } from './views/vendors.js'
+import { renderReports } from './views/reports.js'
 
 state.selectedWeek = isoWeek(new Date())
 
@@ -24,6 +25,10 @@ async function renderCurrentView() {
     }
     if (state.selectedView === 'vendors') {
       renderVendors()
+      return
+    }
+    if (state.selectedView === 'reports') {
+      renderReports({ renderCurrentView })
       return
     }
     await renderEntry({ generation, toast, renderCurrentView })

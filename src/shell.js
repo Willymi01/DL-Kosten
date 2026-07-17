@@ -12,7 +12,7 @@ export function renderShell(renderCurrentView) {
   app.innerHTML = `<div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot</strong><small>Secure Cloud</small></div></div>
-      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}</nav>
+      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}${navButton('reports', 'Berichte & Import')}</nav>
       <div class="sidebar-footer"><div class="user-chip">${state.session.user.email}<br><span class="sync-state">● Live-Synchronisierung</span></div><button id="logout" class="secondary">Abmelden</button></div>
     </aside>
     <main class="main">
@@ -74,7 +74,8 @@ export function updateShellHeader() {
   const titles = {
     dashboard: ['Übersicht', 'Monat, Dienstleister, Kosten, Stunden und Plan auf einen Blick.'],
     entry: ['Zeiterfassung', 'Stunden für alle Dienstleister wochenweise erfassen.'],
-    vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.']
+    vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.'],
+    reports: ['Berichte & Import', 'PDF, Excel, Import und Datensicherung.']
   }
   document.querySelectorAll('.nav-btn').forEach(button => button.classList.toggle('active', button.dataset.view === state.selectedView))
   const [title, subtitle] = titles[state.selectedView] || titles.dashboard
