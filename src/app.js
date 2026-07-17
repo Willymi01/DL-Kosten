@@ -16,6 +16,7 @@ let monthlyBudget = 0
 let yearEntries = []
 let yearBudgets = []
 let weekEntries = []
+let renderGeneration = 0
 let selectedView = 'dashboard'
 let selectedYear = new Date().getFullYear()
 let selectedMonth = new Date().getMonth()+1
@@ -70,14 +71,15 @@ function shell(){
   document.querySelector('#logout').onclick=()=>signOut();document.querySelector('#menu').onclick=()=>document.querySelector('.sidebar').classList.toggle('open')
   document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=async()=>{
     selectedView=b.dataset.view
+    renderGeneration++
     if(selectedView==='entry'){
       const target=weekForMonth(selectedYear,selectedMonth)
       selectedYear=target.year
       selectedWeek=target.week
       document.querySelector('#yearSelect').value=String(selectedYear)
     }
-    renderView()
     document.querySelector('.sidebar').classList.remove('open')
+    await renderView()
   })
   document.querySelector('#yearSelect').onchange=async e=>{
     selectedYear=+e.target.value
@@ -119,15 +121,31 @@ async function refreshPeriod(){
   yearEntries=allEntries
   yearBudgets=budgets
 }
-function renderView(){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===selectedView));const titles={dashboard:['Übersicht','Monat, Dienstleister, Kosten, Stunden und Plan auf einen Blick.'],entry:['Zeiterfassung','Alle Dienstleister gleichzeitig erfassen.'],vendors:['Dienstleister & Preise','Preiszeiträume und Firmen verwalten.']};document.querySelector('#title').textContent=titles[selectedView][0];document.querySelector('#subtitle').textContent=titles[selectedView][1];if(selectedView==='dashboard')renderDashboard();if(selectedView==='entry')renderEntry();if(selectedView==='vendors')renderVendors()}
+async function renderView(){
+  const generation=++renderGeneration
+  document.querySelectorAll('.nav-btn').forEach(button=>{
+    button.classList.toggle('active',button.dataset.view===selectedView)
+  })
+  const titles={
+    dashboard:['Übersicht','Monat, Dienstleister, Kosten, Stunden und Plan auf einen Blick.'],
+    entry:['Zeiterfassung','Stunden für alle Dienstleister wochenweise erfassen.'],
+    vendors:['Dienstleister & Preise','Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.']
+  }
+  const [title,subtitle]=titles[selectedView]||titles.dashboard
+  document.querySelector('#pageTitle').textContent=title
+  document.querySelector('#pageSubtitle').textContent=subtitle
 
-function yearMonthSummary(month){
-  const related=yearEntries.filter(e=>Number(e.work_date.slice(5,7))===month)
-  const actual=related.reduce((sum,e)=>sum+entryCost(e),0)
-  const hours=related.reduce((sum,e)=>sum+Number(e.hours),0)
-  const plan=Number(yearBudgets.find(b=>Number(b.month)===month)?.amount||0)
-  const variance=actual-plan
-  return {month,actual,hours,plan,variance,variancePct:plan?variance/plan*100:0}
+  if(selectedView==='dashboard'){
+    renderDashboard()
+    return
+  }
+  if(selectedView==='vendors'){
+    renderVendors()
+    return
+  }
+  if(selectedView==='entry'){
+    await renderEntry(generation)
+  }
 }
 function yearlySummary(){return months.map((_,index)=>yearMonthSummary(index+1))}
 
@@ -190,12 +208,14 @@ function renderDashboard(){
   })
 }
 
-async function renderEntry(){
+async function renderEntry(generation=renderGeneration){
   const content=document.querySelector('#content')
   content.innerHTML=`<article class="panel"><p class="muted">Kalenderwoche wird geladen …</p></article>`
   try{
     await loadSelectedWeek()
+    if(generation!==renderGeneration || selectedView!=='entry') return
   }catch(err){
+    if(generation!==renderGeneration || selectedView!=='entry') return
     content.innerHTML=`<article class="panel"><p class="bad">${err.message}</p></article>`
     return
   }
@@ -210,7 +230,7 @@ async function renderEntry(){
 
   document.querySelector('#weekSelect').onchange=async e=>{
     selectedWeek=Number(e.target.value)
-    await renderEntry()
+    await renderEntry(renderGeneration)
   }
   document.querySelector('#previousWeek').onclick=async()=>{
     selectedYear=isoWeekYear(previousMonday)
@@ -219,7 +239,7 @@ async function renderEntry(){
     document.querySelector('#yearSelect').value=String(selectedYear)
     document.querySelector('#monthSelect').value=String(selectedMonth)
     await refreshPeriod()
-    await renderEntry()
+    await renderEntry(renderGeneration)
   }
   document.querySelector('#nextWeek').onclick=async()=>{
     selectedYear=isoWeekYear(nextMonday)
@@ -228,7 +248,7 @@ async function renderEntry(){
     document.querySelector('#yearSelect').value=String(selectedYear)
     document.querySelector('#monthSelect').value=String(selectedMonth)
     await refreshPeriod()
-    await renderEntry()
+    await renderEntry(renderGeneration)
   }
 
   document.querySelectorAll('.hours').forEach(input=>input.onchange=async e=>{
