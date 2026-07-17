@@ -15,3 +15,8 @@
   .annual-totals{display:grid;gap:5px}
   .annual-table input{width:105px}
 }
+
+.breakdown-table .area-row td:first-child{font-weight:800}
+.breakdown-table .vendor-subtotal td{font-weight:800;background:#f8fafc;border-top:2px solid #dbe3ee}
+.breakdown-table .grand-total th{font-weight:900;background:#eaf1fb;border-top:3px solid #9fb4d0}
+.breakdown-table tbody tr.area-row:hover{background:#fafcff}

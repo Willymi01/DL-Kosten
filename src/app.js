@@ -79,6 +79,31 @@ function yearMonthSummary(month){
 }
 function yearlySummary(){return months.map((_,index)=>yearMonthSummary(index+1))}
 
+
+function vendorAreaBreakdown(){
+  return vendors
+    .filter(v=>v.active)
+    .map(vendor=>{
+      const vendorEntries=entries.filter(e=>e.vendor_id===vendor.id)
+      const areas={}
+      vendorEntries.forEach(entry=>{
+        const rate=rates.find(r=>r.id===entry.rate_id)
+        const areaName=rate?.name||'Ohne Arbeitsbereich'
+        if(!areas[areaName]) areas[areaName]={name:areaName,hours:0,cost:0}
+        areas[areaName].hours+=Number(entry.hours||0)
+        areas[areaName].cost+=entryCost(entry)
+      })
+      const rows=Object.values(areas).sort((a,b)=>a.name.localeCompare(b.name,'de'))
+      return {
+        vendor,
+        rows,
+        hours: rows.reduce((sum,row)=>sum+row.hours,0),
+        cost: rows.reduce((sum,row)=>sum+row.cost,0)
+      }
+    })
+    .filter(group=>group.rows.length>0 || group.cost>0 || group.hours>0)
+}
+
 function renderDashboard(){
   const totals=vendorTotals(),actual=totalCost(),hours=totalHours(),variance=actual-monthlyBudget,variancePct=monthlyBudget?variance/monthlyBudget*100:0,cph=hours?actual/hours:0
   const now=new Date(),isCurrent=selectedYear===now.getFullYear()&&selectedMonth===now.getMonth()+1,daysElapsed=isCurrent?now.getDate():new Date(selectedYear,selectedMonth,0).getDate(),daysMonth=new Date(selectedYear,selectedMonth,0).getDate(),forecast=isCurrent&&daysElapsed?actual/daysElapsed*daysMonth:actual
@@ -88,7 +113,7 @@ function renderDashboard(){
 
   document.querySelector('#content').innerHTML=`<div class="cards"><article class="card"><span>Ist-Kosten</span><strong>${euro(actual)}</strong><small>${months[selectedMonth-1]} ${selectedYear}</small></article><article class="card"><span>Gesamtstunden</span><strong>${number(hours)}</strong><small>${euro(cph)} je Stunde</small></article><article class="card"><span>Monatsplan</span><strong>${euro(monthlyBudget)}</strong><small class="${variance<=0?'good':'bad'}">${monthlyBudget?`${euro(Math.abs(variance))} ${variance<=0?'unter':'über'} Plan`:'Plan eintragen'}</small></article><article class="card"><span>Hochrechnung</span><strong>${euro(forecast)}</strong><small>${isCurrent?'bis Monatsende':'Monat abgeschlossen'}</small></article></div>
   <div class="grid-two"><article class="panel"><div class="panel-head"><div><h2>Monatsplan gesamt</h2><p>Ein Budget für den ausgewählten Monat.</p></div></div><div class="budget-row"><input id="budgetInput" type="number" min="0" step="100" value="${monthlyBudget||''}" placeholder="z. B. 25000"><button id="saveBudget" class="primary">Plan speichern</button></div><div class="stat-grid"><div><span>Abweichung</span><strong class="${variance<=0?'good':'bad'}">${euro(variance)}</strong></div><div><span>Abweichung %</span><strong class="${variance<=0?'good':'bad'}">${number(variancePct)} %</strong></div><div><span>Größter Anteil</span><strong>${top?.vendor.name||'–'}</strong></div><div><span>Aktive Firmen</span><strong>${vendors.filter(v=>v.active).length}</strong></div></div></article><article class="panel"><div class="panel-head"><div><h2>Planfortschritt</h2><p>Ist im Verhältnis zum Monatsplan</p></div></div><div class="big-progress"><span style="width:${monthlyBudget?Math.min(actual/monthlyBudget*100,100):0}%"></span></div><p><strong>${monthlyBudget?number(actual/monthlyBudget*100):0} %</strong> des Budgets verbraucht</p><p class="muted">Hochrechnung: ${euro(forecast)} · Erwartete Abweichung: ${euro(forecast-monthlyBudget)}</p></article></div>
-  <article class="panel"><div class="panel-head"><div><h2>${months[selectedMonth-1]} ${selectedYear} nach Dienstleister</h2><p>Kosten, Stunden, Durchschnittssatz und Anteil.</p></div></div><div class="table-wrap"><table><thead><tr><th>Dienstleister</th><th>Stunden</th><th>Kosten</th><th>Ø Satz</th><th>Anteil</th></tr></thead><tbody>${totals.map(x=>`<tr><td><span class="dot" style="background:${x.vendor.color}"></span>${x.vendor.name}</td><td>${number(x.hours)}</td><td>${euro(x.cost)}</td><td>${euro(x.hours?x.cost/x.hours:0)}</td><td>${number(actual?x.cost/actual*100:0)} %</td></tr>`).join('')}</tbody></table></div></article>
+  <article class="panel"><div class="panel-head"><div><h2>${months[selectedMonth-1]} ${selectedYear} nach Dienstleister und Arbeitsbereich</h2><p>Kosten und Stunden je Arbeitsbereich, Zwischensumme je Dienstleister und Gesamtsumme.</p></div></div><div class="table-wrap"><table class="breakdown-table"><thead><tr><th>Dienstleister</th><th>Arbeitsbereich</th><th>Stunden</th><th>Kosten</th><th>Ø Satz</th><th>Anteil gesamt</th></tr></thead><tbody>${vendorAreaBreakdown().map(group=>`${group.rows.map((row,index)=>`<tr class="area-row"><td>${index===0?`<span class="dot" style="background:${group.vendor.color}"></span>${group.vendor.name}`:''}</td><td>${row.name}</td><td>${number(row.hours)}</td><td>${euro(row.cost)}</td><td>${euro(row.hours?row.cost/row.hours:0)}</td><td>${number(actual?row.cost/actual*100:0)} %</td></tr>`).join('')}<tr class="vendor-subtotal"><td colspan="2">Summe ${group.vendor.name}</td><td>${number(group.hours)}</td><td>${euro(group.cost)}</td><td>${euro(group.hours?group.cost/group.hours:0)}</td><td>${number(actual?group.cost/actual*100:0)} %</td></tr>`).join('')}</tbody><tfoot><tr class="grand-total"><th colspan="2">Gesamt alle Dienstleister</th><th>${number(hours)}</th><th>${euro(actual)}</th><th>${euro(hours?actual/hours:0)}</th><th>100 %</th></tr></tfoot></table></div></article>
   <article class="panel annual-panel"><div class="panel-head"><div><h2>Jahresübersicht ${selectedYear}</h2><p>Alle Monatspläne direkt pflegen und mit Ist-Werten vergleichen.</p></div><div class="annual-totals"><span>Plan: <strong>${euro(annualPlan)}</strong></span><span>Ist: <strong>${euro(annualActual)}</strong></span><span class="${annualVariance<=0?'good':'bad'}">Abweichung: <strong>${euro(annualVariance)}</strong></span></div></div><div class="table-wrap"><table class="annual-table"><thead><tr><th>Monat</th><th>Plan</th><th>Ist</th><th>Stunden</th><th>Abweichung</th><th>Abweichung %</th><th>Status</th></tr></thead><tbody>${annual.map(m=>`<tr class="${m.month===selectedMonth?'selected-month-row':''}"><td><button class="month-link" data-month="${m.month}">${months[m.month-1]}</button></td><td><input class="annual-plan-input" data-month="${m.month}" type="number" min="0" step="100" value="${m.plan||''}" placeholder="0"></td><td>${euro(m.actual)}</td><td>${number(m.hours)}</td><td class="${m.variance<=0?'good':'bad'}">${euro(m.variance)}</td><td class="${m.variance<=0?'good':'bad'}">${m.plan?`${number(m.variancePct)} %`:'–'}</td><td><span class="month-status ${!m.plan?'neutral':m.variance<=0?'under':'over'}">${!m.plan?'Kein Plan':m.variance<=0?'Im Plan':'Über Plan'}</span></td></tr>`).join('')}</tbody><tfoot><tr><th>Gesamt</th><th>${euro(annualPlan)}</th><th>${euro(annualActual)}</th><th>${number(annualHours)}</th><th class="${annualVariance<=0?'good':'bad'}">${euro(annualVariance)}</th><th>${annualPlan?`${number(annualVariance/annualPlan*100)} %`:'–'}</th><th></th></tr></tfoot></table></div><p class="muted annual-save-hint">Pläne werden automatisch gespeichert, sobald du ein Feld verlässt.</p></article>`
 
   document.querySelector('#saveBudget').onclick=async()=>{

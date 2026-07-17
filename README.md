@@ -30,3 +30,10 @@ Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit 
 - Ist-Kosten, Stunden, Abweichung in Euro und Prozent
 - direkter Sprung in einen Monat durch Klick auf den Monatsnamen
 - installierbare Progressive Web App für Handy und PC
+
+
+## Version 5
+
+- Monatskosten je Dienstleister nach Arbeitsbereichen aufgeschlüsselt
+- Zwischensumme je Dienstleister
+- Gesamtsumme über alle Dienstleister
