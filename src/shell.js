@@ -1,0 +1,85 @@
+import { state } from './state.js'
+import { months, weekForMonth } from './utils.js'
+import { refreshPeriod } from './store.js'
+import { signOut } from './auth.js'
+
+function navButton(view, label) {
+  return `<button class="nav-btn ${state.selectedView === view ? 'active' : ''}" data-view="${view}">${label}</button>`
+}
+
+export function renderShell(renderCurrentView) {
+  const app = document.querySelector('#app')
+  app.innerHTML = `<div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot</strong><small>Secure Cloud</small></div></div>
+      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}</nav>
+      <div class="sidebar-footer"><div class="user-chip">${state.session.user.email}<br><span class="sync-state">● Live-Synchronisierung</span></div><button id="logout" class="secondary">Abmelden</button></div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;gap:10px"><button id="menu" class="secondary mobile-menu">☰</button><div><h1 id="title"></h1><p id="subtitle"></p></div></div>
+        <div class="actions">
+          <select id="yearSelect">${Array.from({ length: 9 }, (_, index) => new Date().getFullYear() - 4 + index).map(year => `<option ${year === state.selectedYear ? 'selected' : ''}>${year}</option>`).join('')}</select>
+          <select id="monthSelect">${months.map((month, index) => `<option value="${index + 1}" ${index + 1 === state.selectedMonth ? 'selected' : ''}>${month}</option>`).join('')}</select>
+        </div>
+      </header>
+      <section id="content"></section>
+    </main>
+  </div>`
+
+  document.querySelector('#logout').addEventListener('click', () => signOut())
+  document.querySelector('#menu').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'))
+
+  document.querySelectorAll('.nav-btn').forEach(button => button.addEventListener('click', async () => {
+    state.selectedView = button.dataset.view
+    state.renderGeneration += 1
+    if (state.selectedView === 'entry') {
+      const target = weekForMonth(state.selectedYear, state.selectedMonth)
+      state.selectedYear = target.year
+      state.selectedWeek = target.week
+      document.querySelector('#yearSelect').value = String(state.selectedYear)
+    }
+    document.querySelector('.sidebar').classList.remove('open')
+    await renderCurrentView()
+  }))
+
+  document.querySelector('#yearSelect').addEventListener('change', async event => {
+    state.selectedYear = Number(event.currentTarget.value)
+    if (state.selectedView === 'entry') {
+      const target = weekForMonth(state.selectedYear, state.selectedMonth)
+      state.selectedYear = target.year
+      state.selectedWeek = target.week
+      document.querySelector('#yearSelect').value = String(state.selectedYear)
+    }
+    await refreshPeriod()
+    state.renderGeneration += 1
+    await renderCurrentView()
+  })
+
+  document.querySelector('#monthSelect').addEventListener('change', async event => {
+    state.selectedMonth = Number(event.currentTarget.value)
+    if (state.selectedView === 'entry') {
+      const target = weekForMonth(state.selectedYear, state.selectedMonth)
+      state.selectedYear = target.year
+      state.selectedWeek = target.week
+      document.querySelector('#yearSelect').value = String(state.selectedYear)
+    }
+    await refreshPeriod()
+    state.renderGeneration += 1
+    await renderCurrentView()
+  })
+}
+
+export function updateShellHeader() {
+  const titles = {
+    dashboard: ['Übersicht', 'Monat, Dienstleister, Kosten, Stunden und Plan auf einen Blick.'],
+    entry: ['Zeiterfassung', 'Stunden für alle Dienstleister wochenweise erfassen.'],
+    vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.']
+  }
+  document.querySelectorAll('.nav-btn').forEach(button => button.classList.toggle('active', button.dataset.view === state.selectedView))
+  const [title, subtitle] = titles[state.selectedView] || titles.dashboard
+  const titleEl = document.querySelector('#title')
+  const subtitleEl = document.querySelector('#subtitle')
+  if (titleEl) titleEl.textContent = title
+  if (subtitleEl) subtitleEl.textContent = subtitle
+}

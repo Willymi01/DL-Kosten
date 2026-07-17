@@ -55,10 +55,20 @@ Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit 
 - aktive Navigation, Seitentitel und Seiteninhalt bleiben jetzt synchron
 
 
-## Version 9
+## Version 10 – stabiler Neuaufbau
 
-- Jahresprognose aus dem bisherigen Ist-Verlauf
-- erwartete Jahreskosten und erwartete Abweichung zum Jahresplan
-- durchschnittlich verfügbares Budget je verbleibendem Monatsanteil
-- automatische Aussage, wie viel pro Restmonat gespart werden muss oder zusätzlich ausgegeben werden kann
-- abgeschlossene und zukünftige Jahre werden getrennt behandelt
+Die Oberfläche wurde in getrennte Module aufgeteilt:
+
+- `views/dashboard.js` – Monatsübersicht, Jahresübersicht und Prognose
+- `views/entry.js` – Zeiterfassung und historische Kalenderwochen
+- `views/vendors.js` – Dienstleister, Arbeitsbereiche und Preiszeiträume
+- `store.js` – Laden und Aktualisieren der Supabase-Daten
+- `shell.js` – Navigation und Zeitraumsauswahl
+- `utils.js` – Datums-, Kosten- und Formatierungsfunktionen
+
+Zusätzlich:
+
+- Fehler einer einzelnen Ansicht legen nicht mehr die gesamte App lahm
+- sichere Navigation gegen asynchrone Überschreibungen
+- Jahresprognose mit Sparbedarf oder zusätzlichem monatlichem Spielraum
+- bestehende Supabase-Daten und Migrationen bleiben kompatibel
