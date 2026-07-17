@@ -53,3 +53,12 @@ Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit 
 - Behebung des Navigationsfehlers zwischen Zeiterfassung und Übersicht
 - asynchrones Laden einer alten Zeiterfassungsansicht kann die neue Ansicht nicht mehr überschreiben
 - aktive Navigation, Seitentitel und Seiteninhalt bleiben jetzt synchron
+
+
+## Version 9
+
+- Jahresprognose aus dem bisherigen Ist-Verlauf
+- erwartete Jahreskosten und erwartete Abweichung zum Jahresplan
+- durchschnittlich verfügbares Budget je verbleibendem Monatsanteil
+- automatische Aussage, wie viel pro Restmonat gespart werden muss oder zusätzlich ausgegeben werden kann
+- abgeschlossene und zukünftige Jahre werden getrennt behandelt
