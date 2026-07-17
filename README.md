@@ -72,3 +72,17 @@ Zusätzlich:
 - sichere Navigation gegen asynchrone Überschreibungen
 - Jahresprognose mit Sparbedarf oder zusätzlichem monatlichem Spielraum
 - bestehende Supabase-Daten und Migrationen bleiben kompatibel
+
+
+## Version 11 – Controlling & Analysen
+
+Neu auf dem Dashboard:
+
+- Ampelsystem für den aktuellen Monatsplan
+- 3-Monats-Durchschnitt
+- Trend zum Vormonat
+- Dienstleister-Ranking
+- Arbeitsbereichsauswertung
+- Monat-zu-Monat-Vergleich
+- erweiterte Jahresprognose bleibt vollständig erhalten
+- keine neue Supabase-Migration notwendig

@@ -44,3 +44,35 @@
 .forecast-callout.neutral{background:#f8fafc;border-color:#dbe3ee;color:#475569}
 @media(max-width:1000px){.year-forecast-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.year-forecast-grid{grid-template-columns:1fr}.forecast-callout{flex-direction:column;gap:4px}}
+
+.control-dashboard{display:grid;gap:16px}
+.status-panel{border-left:6px solid}
+.status-panel.status-green{border-left-color:#16a34a;background:#f0fdf4}
+.status-panel.status-yellow{border-left-color:#d97706;background:#fffbeb}
+.status-panel.status-red{border-left-color:#dc2626;background:#fef2f2}
+.status-panel.status-neutral{border-left-color:#64748b;background:#f8fafc}
+.status-line{display:flex;gap:12px;align-items:flex-start}
+.status-line h2{margin:0 0 4px}
+.status-line p{margin:0}
+.status-dot{font-size:24px;line-height:1}
+.status-green .status-dot{color:#16a34a}
+.status-yellow .status-dot{color:#d97706}
+.status-red .status-dot{color:#dc2626}
+.status-neutral .status-dot{color:#64748b}
+.status-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.status-metrics>div{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:10px;background:rgba(255,255,255,.7)}
+.status-metrics span{font-size:13px;color:#64748b;font-weight:700}
+.analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ranking-list{display:grid;gap:14px}
+.ranking-row{display:grid;gap:6px}
+.ranking-title{display:flex;align-items:center;gap:8px}
+.ranking-title>span:last-child{margin-left:auto;font-weight:800}
+.rank-number{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border-radius:999px;background:#e2e8f0;font-size:12px;font-weight:800}
+.mini-track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+.mini-track span{display:block;height:100%;background:#2563eb;border-radius:inherit}
+.ranking-row small{color:#64748b}
+.trend-up{color:#dc2626;font-weight:800}
+.trend-down{color:#16a34a;font-weight:800}
+.trend-flat{color:#475569;font-weight:800}
+.trend-neutral{color:#94a3b8}
+@media(max-width:900px){.analysis-grid{grid-template-columns:1fr}.status-metrics{grid-template-columns:1fr}}

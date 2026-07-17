@@ -113,6 +113,80 @@ function buildForecast(annual, annualPlan, annualActual) {
   return { available: true, annualForecast, forecastVariance, remainingUnits, allowedAverageRemaining, adjustment, message }
 }
 
+
+function monthName(month) {
+  return months[month - 1]
+}
+
+function monthlyAnalytics(annual) {
+  return annual.map((item, index) => {
+    const previous = index > 0 ? annual[index - 1] : null
+    const change = previous && previous.actual ? ((item.actual - previous.actual) / previous.actual) * 100 : 0
+    const direction = !previous || previous.actual === 0 ? 'neutral' : change > 3 ? 'up' : change < -3 ? 'down' : 'flat'
+    return { ...item, change, direction }
+  })
+}
+
+function lastThreeMonthAverage(annual, selectedMonth) {
+  const end = Math.max(1, selectedMonth)
+  const start = Math.max(1, end - 2)
+  const slice = annual.slice(start - 1, end).filter(item => item.actual > 0)
+  if (!slice.length) return 0
+  return slice.reduce((sum, item) => sum + item.actual, 0) / slice.length
+}
+
+function dashboardStatus(monthlyForecast, monthlyBudget) {
+  if (!monthlyBudget) return {
+    tone: 'neutral',
+    icon: '●',
+    label: 'Kein Monatsplan',
+    text: 'Für diesen Monat wurde noch kein Plan hinterlegt.'
+  }
+  const ratio = monthlyForecast / monthlyBudget
+  if (ratio <= 0.9) return {
+    tone: 'green',
+    icon: '●',
+    label: 'Alles im Plan',
+    text: `Die aktuelle Hochrechnung liegt ${euro(monthlyBudget - monthlyForecast)} unter dem Monatsplan.`
+  }
+  if (ratio <= 1) return {
+    tone: 'yellow',
+    icon: '●',
+    label: 'Plan beobachten',
+    text: `Es verbleiben voraussichtlich noch ${euro(monthlyBudget - monthlyForecast)} Puffer.`
+  }
+  return {
+    tone: 'red',
+    icon: '●',
+    label: 'Budget gefährdet',
+    text: `Die aktuelle Hochrechnung liegt ${euro(monthlyForecast - monthlyBudget)} über dem Monatsplan.`
+  }
+}
+
+function providerRanking() {
+  return vendorTotals()
+    .filter(item => item.cost > 0)
+    .sort((a, b) => b.cost - a.cost)
+}
+
+function workAreaTotals() {
+  const areas = {}
+  state.entries.forEach(entry => {
+    const name = entry.vendor_rates?.name || 'Ohne Arbeitsbereich'
+    if (!areas[name]) areas[name] = { name, hours: 0, cost: 0 }
+    areas[name].hours += Number(entry.hours || 0)
+    areas[name].cost += entryCost(entry)
+  })
+  return Object.values(areas).sort((a, b) => b.cost - a.cost)
+}
+
+function trendLabel(direction) {
+  if (direction === 'up') return '↑ steigend'
+  if (direction === 'down') return '↓ fallend'
+  if (direction === 'flat') return '→ stabil'
+  return '–'
+}
+
 export function renderDashboard({ toast }) {
   const content = document.querySelector('#content')
   if (!content) return
@@ -135,6 +209,14 @@ export function renderDashboard({ toast }) {
   const annualHours = annual.reduce((sum, month) => sum + month.hours, 0)
   const annualVariance = annualActual - annualPlan
   const forecast = buildForecast(annual, annualPlan, annualActual)
+  const analytics = monthlyAnalytics(annual)
+  const threeMonthAverage = lastThreeMonthAverage(annual, state.selectedMonth)
+  const selectedTrend = analytics[state.selectedMonth - 1] || { direction: 'neutral', change: 0 }
+  const status = dashboardStatus(monthlyForecast, state.monthlyBudget)
+  const ranking = providerRanking()
+  const areaTotals = workAreaTotals()
+  const maxVendorCost = ranking[0]?.cost || 0
+  const maxAreaCost = areaTotals[0]?.cost || 0
 
   content.innerHTML = `
     <div class="cards">
@@ -176,6 +258,59 @@ export function renderDashboard({ toast }) {
         </table>
       </div>
     </article>
+
+
+    <section class="control-dashboard">
+      <article class="panel status-panel status-${status.tone}">
+        <div class="status-line"><span class="status-dot">${status.icon}</span><div><h2>${status.label}</h2><p>${status.text}</p></div></div>
+        <div class="status-metrics">
+          <div><span>3-Monats-Ø</span><strong>${threeMonthAverage ? euro(threeMonthAverage) : '–'}</strong></div>
+          <div><span>Trend zum Vormonat</span><strong class="trend-${selectedTrend.direction}">${trendLabel(selectedTrend.direction)}</strong><small>${selectedTrend.direction !== 'neutral' ? `${number(Math.abs(selectedTrend.change))} %` : ''}</small></div>
+          <div><span>Kosten je Stunde</span><strong>${euro(costPerHour)}</strong></div>
+        </div>
+      </article>
+
+      <div class="analysis-grid">
+        <article class="panel">
+          <div class="panel-head"><div><h2>Dienstleister-Ranking</h2><p>Nach Kosten im ausgewählten Monat.</p></div></div>
+          <div class="ranking-list">
+            ${ranking.length ? ranking.map((item, index) => `<div class="ranking-row">
+              <div class="ranking-title"><span class="rank-number">${index + 1}</span><span class="dot" style="background:${item.vendor.color}"></span><strong>${item.vendor.name}</strong><span>${euro(item.cost)}</span></div>
+              <div class="mini-track"><span style="width:${maxVendorCost ? item.cost / maxVendorCost * 100 : 0}%"></span></div>
+              <small>${number(item.hours)} Std. · ${number(actual ? item.cost / actual * 100 : 0)} % Anteil</small>
+            </div>`).join('') : '<p class="muted">Noch keine Ist-Daten vorhanden.</p>'}
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div><h2>Arbeitsbereiche</h2><p>Wo entstehen die meisten Kosten?</p></div></div>
+          <div class="ranking-list">
+            ${areaTotals.length ? areaTotals.map((item, index) => `<div class="ranking-row">
+              <div class="ranking-title"><span class="rank-number">${index + 1}</span><strong>${item.name}</strong><span>${euro(item.cost)}</span></div>
+              <div class="mini-track"><span style="width:${maxAreaCost ? item.cost / maxAreaCost * 100 : 0}%"></span></div>
+              <small>${number(item.hours)} Std. · Ø ${euro(item.hours ? item.cost / item.hours : 0)}/h</small>
+            </div>`).join('') : '<p class="muted">Noch keine Ist-Daten vorhanden.</p>'}
+          </div>
+        </article>
+      </div>
+
+      <article class="panel">
+        <div class="panel-head"><div><h2>Monat-zu-Monat-Vergleich</h2><p>Plan, Ist, Abweichung und Entwicklung im Jahresverlauf.</p></div></div>
+        <div class="table-wrap">
+          <table class="comparison-table">
+            <thead><tr><th>Monat</th><th>Plan</th><th>Ist</th><th>Abweichung</th><th>Trend</th><th>Status</th></tr></thead>
+            <tbody>${analytics.map(item => `<tr class="${item.month === state.selectedMonth ? 'selected-month-row' : ''}">
+              <td>${monthName(item.month)}</td>
+              <td>${euro(item.plan)}</td>
+              <td>${euro(item.actual)}</td>
+              <td class="${item.variance <= 0 ? 'good' : 'bad'}">${euro(item.variance)}</td>
+              <td class="trend-${item.direction}">${trendLabel(item.direction)}${item.direction !== 'neutral' ? ` (${number(Math.abs(item.change))} %)` : ''}</td>
+              <td><span class="month-status ${!item.plan ? 'neutral' : item.variance <= 0 ? 'under' : 'over'}">${!item.plan ? 'Kein Plan' : item.variance <= 0 ? 'Im Plan' : 'Über Plan'}</span></td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </article>
+    </section>
 
     <article class="panel annual-panel">
       <div class="panel-head">
