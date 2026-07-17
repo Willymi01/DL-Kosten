@@ -1,27 +1,23 @@
-# CostPilot Single-User
+# CostPilot V3
 
-Sichere Cloud-App für eine Firma und ein Benutzerkonto.
+Single-User-Cloud-App mit Live-Synchronisierung zwischen Handy und PC.
 
-## Enthalten
+## Neue Funktionen
 
-- E-Mail-/Passwort-Login
-- Passwort zurücksetzen
-- keine Filialen, Rollen oder Teamverwaltung
-- sichere Cloud-Speicherung in Supabase
-- Row-Level-Security: alle Daten gehören nur zum angemeldeten Konto
-- Dienstleister und Stundensätze
-- Wochen- und Tageserfassung
-- Monatsauswertung und Plan-Ist
-- mobile Nutzung und GitHub-Pages-Deployment
+- Übersicht mit Monat, Dienstleister, Kosten, Stunden und Durchschnittssatz
+- ein Gesamtplan pro Monat direkt auf der Übersicht
+- Abweichung in Euro und Prozent, Hochrechnung, Kosten je Stunde, größter Kostenanteil
+- alle Dienstleister gleichzeitig in der Zeiterfassung
+- Preise mit Gültigkeitszeitraum von/bis
+- Live-Synchronisierung über Supabase Realtime
+- separate Planzahlen-Seite entfernt
 
-## Start
+## Update einer bestehenden Supabase-Datenbank
 
-```bash
-cp .env.example .env
-npm install
-npm run dev
+Nach dem Hochladen der neuen App zusätzlich im Supabase SQL Editor ausführen:
+
+```text
+supabase/migrations/002_dashboard_rates_sync.sql
 ```
 
-Danach `supabase/migrations/001_secure_schema.sql` im Supabase SQL Editor ausführen und die Supabase-Zugangsdaten in `.env` eintragen.
-
-Anschließend direkt in der App registrieren, E-Mail bestätigen und anmelden. Eine zusätzliche Filial- oder Rollenzuordnung ist nicht nötig.
+Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit demselben Konto anmelden. Änderungen werden sofort in Supabase gespeichert und über Realtime auf das andere Gerät übertragen.
