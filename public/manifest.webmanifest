@@ -1,5 +1,5 @@
 {
-  "name": "CostPilot Secure",
+  "name": "CostPilot",
   "short_name": "CostPilot",
   "start_url": "./",
   "display": "standalone",
@@ -7,10 +7,12 @@
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "./",
+  "description": "Dienstleisterkosten, Stunden, Pläne und Statistiken sicher in der Cloud verwalten."
 }

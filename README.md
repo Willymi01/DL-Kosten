@@ -21,3 +21,12 @@ supabase/migrations/002_dashboard_rates_sync.sql
 ```
 
 Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit demselben Konto anmelden. Änderungen werden sofort in Supabase gespeichert und über Realtime auf das andere Gerät übertragen.
+
+
+## Version 4
+
+- Jahresübersicht mit allen zwölf Monaten direkt auf dem Dashboard
+- Monatsplan je Monat ohne Wechsel der Ansicht pflegen
+- Ist-Kosten, Stunden, Abweichung in Euro und Prozent
+- direkter Sprung in einen Monat durch Klick auf den Monatsnamen
+- installierbare Progressive Web App für Handy und PC

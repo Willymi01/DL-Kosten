@@ -83,6 +83,16 @@ export async function getMonthlyBudget(year, month) {
   return data
 }
 
+export async function getYearBudgets(year) {
+  const { data, error } = await supabase
+    .from('monthly_budgets')
+    .select('id, year, month, amount')
+    .eq('year', year)
+    .order('month')
+  if (error) throw error
+  return data ?? []
+}
+
 export async function upsertMonthlyBudget(year, month, amount) {
   const { error } = await supabase.from('monthly_budgets').upsert({
     year,
