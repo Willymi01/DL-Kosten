@@ -1,32 +1,57 @@
 name: Deploy GitHub Pages
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: github-pages
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Repository laden
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run build
+          registry-url: https://registry.npmjs.org
+
+      - name: Abhängigkeiten installieren
+        run: npm ci --no-audit --no-fund --prefer-offline
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+          NPM_CONFIG_FETCH_RETRIES: 2
+          NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: 10000
+          NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: 30000
+
+      - name: App bauen
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v5
+
+      - name: Build hochladen
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-      - uses: actions/deploy-pages@v4
+
+      - name: Veröffentlichen
+        uses: actions/deploy-pages@v4
