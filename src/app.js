@@ -26,10 +26,10 @@ let liveTimer = null
 function toast(text) { const el=document.createElement('div');el.className='toast';el.textContent=text;document.body.append(el);setTimeout(()=>el.remove(),2600) }
 function isoWeek(date){const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const y0=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-y0)/86400000)+1)/7)}
 function weeksInYear(year){return isoWeek(new Date(year,11,28))}
-function mondayOfWeek(year,week){const simple=new Date(year,0,1+(week-1)*7);const dow=simple.getDay();const monday=new Date(simple);monday.setDate(simple.getDate()+(dow<=4?1-dow:8-dow));return monday}
-function fmtDate(d){return d.toISOString().slice(0,10)}
-function monthRange(year,month){return [fmtDate(new Date(year,month-1,1)),fmtDate(new Date(year,month,0))]}
-function weekDates(year,week){const start=mondayOfWeek(year,week);return days.map((name,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return{name,date:fmtDate(d)}})}
+function mondayOfWeek(year,week){const jan4=new Date(Date.UTC(year,0,4));const jan4Day=jan4.getUTCDay()||7;const monday=new Date(jan4);monday.setUTCDate(jan4.getUTCDate()-(jan4Day-1)+(week-1)*7);return monday}
+function fmtDate(d){return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`}
+function monthRange(year,month){const lastDay=new Date(Date.UTC(year,month,0)).getUTCDate();return [`${year}-${String(month).padStart(2,'0')}-01`,`${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`]}
+function weekDates(year,week){const start=mondayOfWeek(year,week);return days.map((name,i)=>{const d=new Date(start);d.setUTCDate(start.getUTCDate()+i);return{name,date:fmtDate(d)}})}
 function isoWeekYear(date){
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()))
   const day=d.getUTCDay()||7
@@ -202,9 +202,9 @@ async function renderEntry(){
 
   const active=vendors.filter(v=>v.active),dates=weekDates(selectedYear,selectedWeek)
   const previousMonday=mondayOfWeek(selectedYear,selectedWeek)
-  previousMonday.setDate(previousMonday.getDate()-7)
+  previousMonday.setUTCDate(previousMonday.getUTCDate()-7)
   const nextMonday=mondayOfWeek(selectedYear,selectedWeek)
-  nextMonday.setDate(nextMonday.getDate()+7)
+  nextMonday.setUTCDate(nextMonday.getUTCDate()+7)
 
   content.innerHTML=`<article class="panel"><div class="panel-head entry-period-head"><div><h2>Kalenderwoche ${selectedWeek}</h2><p>${weekLabel(dates)} · Vergangene Wochen können jederzeit angesehen und bearbeitet werden.</p></div><div class="week-controls"><button id="previousWeek" class="secondary" title="Vorherige Woche">←</button><select id="weekSelect">${Array.from({length:weeksInYear(selectedYear)},(_,i)=>i+1).map(w=>`<option value="${w}" ${w===selectedWeek?'selected':''}>KW ${w}</option>`).join('')}</select><button id="nextWeek" class="secondary" title="Nächste Woche">→</button></div></div><div class="entry-period-summary"><strong>${months[selectedMonth-1]} ${selectedYear}</strong><span>Die Stunden werden für die oben ausgewählte Kalenderwoche geladen.</span></div><div class="all-vendors-entry">${active.map(v=>renderVendorEntry(v,dates)).join('')}</div></article>`
 
@@ -215,7 +215,7 @@ async function renderEntry(){
   document.querySelector('#previousWeek').onclick=async()=>{
     selectedYear=isoWeekYear(previousMonday)
     selectedWeek=isoWeek(previousMonday)
-    selectedMonth=previousMonday.getMonth()+1
+    selectedMonth=previousMonday.getUTCMonth()+1
     document.querySelector('#yearSelect').value=String(selectedYear)
     document.querySelector('#monthSelect').value=String(selectedMonth)
     await refreshPeriod()
@@ -224,7 +224,7 @@ async function renderEntry(){
   document.querySelector('#nextWeek').onclick=async()=>{
     selectedYear=isoWeekYear(nextMonday)
     selectedWeek=isoWeek(nextMonday)
-    selectedMonth=nextMonday.getMonth()+1
+    selectedMonth=nextMonday.getUTCMonth()+1
     document.querySelector('#yearSelect').value=String(selectedYear)
     document.querySelector('#monthSelect').value=String(selectedMonth)
     await refreshPeriod()
@@ -232,27 +232,46 @@ async function renderEntry(){
   }
 
   document.querySelectorAll('.hours').forEach(input=>input.onchange=async e=>{
-    const value=Number(e.target.value.replace(',','.'))||0
+    const field=e.target
+    const value=Number(String(field.value).replace(',','.'))||0
+    field.disabled=true
     try{
       await upsertEntry({
-        vendor_id:e.target.dataset.vendor,
-        rate_id:e.target.dataset.rate,
-        work_date:e.target.dataset.date,
+        vendor_id:field.dataset.vendor,
+        rate_id:field.dataset.rate,
+        work_date:field.dataset.date,
         hours:value
       })
       await Promise.all([refreshPeriod(),loadSelectedWeek()])
-      await renderEntry()
+      const saved=weekEntries.find(entry=>entry.work_date===field.dataset.date&&entry.vendor_id===field.dataset.vendor&&entry.rate_id===field.dataset.rate)
+      field.value=saved&&Number(saved.hours)!==0?number(saved.hours):''
+      refreshEntryTotals(dates)
       toast('Gespeichert')
     }catch(err){
       toast(err.message)
+    }finally{
+      field.disabled=false
     }
   })
 }
+function refreshEntryTotals(dates){
+  vendors.filter(v=>v.active).forEach(vendor=>{
+    const vendorTotal=weekEntries.filter(e=>e.vendor_id===vendor.id&&dates.some(d=>d.date===e.work_date)).reduce((s,e)=>s+entryCost(e),0)
+    const totalEl=document.querySelector(`[data-vendor-total="${vendor.id}"]`)
+    if(totalEl) totalEl.textContent=euro(vendorTotal)
+    dates.forEach(d=>{
+      const dayCost=weekEntries.filter(e=>e.work_date===d.date&&e.vendor_id===vendor.id).reduce((s,e)=>s+entryCost(e),0)
+      const dayEl=document.querySelector(`[data-day-cost="${vendor.id}|${d.date}"]`)
+      if(dayEl) dayEl.textContent=euro(dayCost)
+    })
+  })
+}
+
 function renderVendorEntry(vendor,dates){
   const weekRates=(vendor.vendor_rates||[]).filter(r=>dates.some(d=>isRateValid(r,d.date)))
   if(!weekRates.length)return`<section class="vendor-entry-block"><h3><span class="dot" style="background:${vendor.color}"></span>${vendor.name}</h3><p class="muted">Für diese Woche ist kein gültiger Preiszeitraum hinterlegt.</p></section>`
   const total=weekEntries.filter(e=>e.vendor_id===vendor.id&&dates.some(d=>d.date===e.work_date)).reduce((s,e)=>s+entryCost(e),0)
-  return`<section class="vendor-entry-block"><div class="vendor-entry-head"><h3><span class="dot" style="background:${vendor.color}"></span>${vendor.name}</h3><strong>${euro(total)}</strong></div><div class="entry-grid"><div class="entry-row entry-header"><div>Tag</div>${weekRates.map(r=>`<div>${r.name}<br><small>${euro(r.hourly_rate)}/h</small></div>`).join('')}<div>Kosten</div></div>${dates.map(d=>{const cells=weekRates.map(r=>{if(!isRateValid(r,d.date))return'<div class="rate-unavailable">–</div>';const existing=weekEntries.find(e=>e.work_date===d.date&&e.vendor_id===vendor.id&&e.rate_id===r.id);return`<input class="hours" data-date="${d.date}" data-vendor="${vendor.id}" data-rate="${r.id}" inputmode="decimal" value="${existing?.hours||''}" placeholder="0,00">`}).join('');const dayCost=weekEntries.filter(e=>e.work_date===d.date&&e.vendor_id===vendor.id).reduce((s,e)=>s+entryCost(e),0);return`<div class="entry-row"><div class="day">${d.name}<br><small>${d.date.split('-').reverse().join('.')}</small></div>${cells}<div>${euro(dayCost)}</div></div>`}).join('')}</div></section>`
+  return`<section class="vendor-entry-block"><div class="vendor-entry-head"><h3><span class="dot" style="background:${vendor.color}"></span>${vendor.name}</h3><strong data-vendor-total="${vendor.id}">${euro(total)}</strong></div><div class="entry-grid"><div class="entry-row entry-header"><div>Tag</div>${weekRates.map(r=>`<div>${r.name}<br><small>${euro(r.hourly_rate)}/h</small></div>`).join('')}<div>Kosten</div></div>${dates.map(d=>{const cells=weekRates.map(r=>{if(!isRateValid(r,d.date))return'<div class="rate-unavailable">–</div>';const existing=weekEntries.find(e=>e.work_date===d.date&&e.vendor_id===vendor.id&&e.rate_id===r.id);return`<input class="hours" data-date="${d.date}" data-vendor="${vendor.id}" data-rate="${r.id}" inputmode="decimal" value="${existing?.hours||''}" placeholder="0,00">`}).join('');const dayCost=weekEntries.filter(e=>e.work_date===d.date&&e.vendor_id===vendor.id).reduce((s,e)=>s+entryCost(e),0);return`<div class="entry-row"><div class="day">${d.name}<br><small>${d.date.split('-').reverse().join('.')}</small></div>${cells}<div data-day-cost="${vendor.id}|${d.date}">${euro(dayCost)}</div></div>`}).join('')}</div></section>`
 }
 
 function periodLabel(r){const from=r.effective_from?.split('-').reverse().join('.')||'–',to=r.effective_to?r.effective_to.split('-').reverse().join('.'):'offen';return`${from} – ${to}`}
@@ -263,7 +282,7 @@ function renderVendors(){
 function rateRow(r={}){return`<div class="rate-period-row"><input class="rName" data-id="${r.id||''}" value="${r.name||''}" placeholder="Tätigkeit" required><input class="rPrice" type="number" min="0" step=".01" value="${r.hourly_rate||''}" placeholder="€/h" required><label>Von<input class="rFrom" type="date" value="${r.effective_from||`${selectedYear}-01-01`}" required></label><label>Bis<input class="rTo" type="date" value="${r.effective_to||''}"></label></div>`}
 function vendorModal(vendor=null){const rates=vendor?.vendor_rates?.length?vendor.vendor_rates:[{}],modal=document.createElement('div');modal.className='modal';modal.innerHTML=`<form class="modal-card wide-modal"><h2>${vendor?'Dienstleister bearbeiten':'Dienstleister anlegen'}</h2><label>Firmenname<input id="vName" value="${vendor?.name||''}" required></label><label>Farbe<input id="vColor" type="color" value="${vendor?.color||'#2563eb'}"></label><h3>Preise und Gültigkeitszeiträume</h3><div id="rates">${rates.map(rateRow).join('')}</div><button id="addRate" type="button" class="secondary">+ Neuer Preiszeitraum</button><div class="modal-actions"><button id="cancel" type="button" class="secondary">Abbrechen</button><button class="primary">Speichern</button></div></form>`;document.body.append(modal);modal.querySelector('#cancel').onclick=()=>modal.remove();modal.querySelector('#addRate').onclick=()=>modal.querySelector('#rates').insertAdjacentHTML('beforeend',rateRow());modal.querySelector('form').onsubmit=async e=>{e.preventDefault();const rates=[...modal.querySelectorAll('.rate-period-row')].map(row=>({id:row.querySelector('.rName').dataset.id||undefined,name:row.querySelector('.rName').value.trim(),hourly_rate:Number(row.querySelector('.rPrice').value),effective_from:row.querySelector('.rFrom').value,effective_to:row.querySelector('.rTo').value||null}));try{await saveVendor({id:vendor?.id,name:modal.querySelector('#vName').value.trim(),color:modal.querySelector('#vColor').value,active:true,rates});modal.remove();await refreshData();renderVendors();toast('Gespeichert.')}catch(err){toast(err.message)}}}
 
-async function loadApp(){await refreshData();shell();renderView();if(liveChannel)supabase.removeChannel(liveChannel);liveChannel=subscribeToChanges(()=>{clearTimeout(liveTimer);liveTimer=setTimeout(async()=>{await refreshData();renderView();toast('Daten synchronisiert')},350)})}
+async function loadApp(){await refreshData();shell();renderView();if(liveChannel)supabase.removeChannel(liveChannel);liveChannel=subscribeToChanges(()=>{clearTimeout(liveTimer);liveTimer=setTimeout(async()=>{await refreshData();if(selectedView==='entry'){await loadSelectedWeek();const dates=weekDates(selectedYear,selectedWeek);refreshEntryTotals(dates)}else{renderView()}toast('Daten synchronisiert')},350)})}
 async function boot(){if(!configured){authScreen();return}const{data}=await getSession();session=data.session;onAuthChange(async(event,newSession)=>{session=newSession;if(event==='PASSWORD_RECOVERY')return passwordUpdateScreen();if(!session)authScreen();else await loadApp()});if(session)await loadApp();else authScreen()}
 boot().catch(err=>authScreen('login',err.message))
 

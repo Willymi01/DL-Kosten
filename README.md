@@ -46,3 +46,10 @@ Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit 
 - Vor-/Zurück-Navigation zwischen Wochen
 - Auswahl eines Monats springt in der Zeiterfassung automatisch zu einer passenden Kalenderwoche
 - Behebung des Fehlers, bei dem Monatswerte in der Übersicht sichtbar, aber in der Zeiterfassung nicht geladen waren
+
+## Version 7
+
+- Eingabefelder werden nach dem Speichern nicht mehr durch Live-Synchronisierung neu aufgebaut
+- gespeicherte Werte bleiben sichtbar und können erneut bearbeitet werden
+- Tages- und Wochensummen aktualisieren sich ohne Verlust des Eingabefokus
+- ISO-Kalenderwochen und Datumsanzeige verwenden UTC-sichere Berechnung ohne Tagesverschiebung
