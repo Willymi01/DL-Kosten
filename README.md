@@ -37,3 +37,12 @@ Danach GitHub Actions erneut starten. Für Handy und PC auf beiden Geräten mit 
 - Monatskosten je Dienstleister nach Arbeitsbereichen aufgeschlüsselt
 - Zwischensumme je Dienstleister
 - Gesamtsumme über alle Dienstleister
+
+
+## Version 6
+
+- Zeiterfassung lädt die Daten der tatsächlich gewählten Kalenderwoche
+- vergangene Monate und Kalenderwochen können angezeigt und bearbeitet werden
+- Vor-/Zurück-Navigation zwischen Wochen
+- Auswahl eines Monats springt in der Zeiterfassung automatisch zu einer passenden Kalenderwoche
+- Behebung des Fehlers, bei dem Monatswerte in der Übersicht sichtbar, aber in der Zeiterfassung nicht geladen waren
