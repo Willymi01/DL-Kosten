@@ -12,5 +12,7 @@ export const state = {
   selectedWeek: 1,
   renderGeneration: 0,
   liveChannel: null,
-  liveTimer: null
+  liveTimer: null,
+  lastUpdated: null,
+  installPrompt: null
 }

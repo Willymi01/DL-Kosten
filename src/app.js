@@ -11,10 +11,12 @@ import { renderDashboard } from './views/dashboard.js'
 import { renderEntry } from './views/entry.js'
 import { renderVendors } from './views/vendors.js'
 import { renderReports } from './views/reports.js'
+import { renderInsights } from './views/insights.js'
 
 state.selectedWeek = isoWeek(new Date())
 
-async function renderCurrentView() {
+async function renderCurrentView(forceRefresh = false) {
+  if (forceRefresh) { await refreshData(); state.lastUpdated = new Date().toISOString() }
   const generation = ++state.renderGeneration
   updateShellHeader()
 
@@ -25,6 +27,10 @@ async function renderCurrentView() {
     }
     if (state.selectedView === 'vendors') {
       renderVendors()
+      return
+    }
+    if (state.selectedView === 'insights') {
+      renderInsights({ renderCurrentView })
       return
     }
     if (state.selectedView === 'reports') {
@@ -44,6 +50,7 @@ async function renderCurrentView() {
 
 async function loadApp() {
   await refreshData()
+  state.lastUpdated = new Date().toISOString()
   renderShell(renderCurrentView)
   await renderCurrentView()
 
@@ -93,3 +100,32 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Service Worker:', error))
   })
 }
+
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault()
+  state.installPrompt = event
+  const button = document.querySelector('#installApp')
+  if (button) button.hidden = false
+})
+
+function updateConnectionBanner() {
+  let banner = document.querySelector('#connectionBanner')
+  if (!navigator.onLine) {
+    if (!banner) {
+      banner = document.createElement('div')
+      banner.id = 'connectionBanner'
+      banner.className = 'connection-banner'
+      banner.textContent = 'Offline – bereits geladene Ansichten bleiben verfügbar. Änderungen werden erst online gespeichert.'
+      document.body.append(banner)
+    }
+  } else if (banner) {
+    banner.remove()
+    toast('Verbindung wiederhergestellt')
+  }
+  const onlineState = document.querySelector('#onlineState')
+  if (onlineState) onlineState.textContent = navigator.onLine ? 'Online' : 'Offline'
+}
+window.addEventListener('online', updateConnectionBanner)
+window.addEventListener('offline', updateConnectionBanner)
+updateConnectionBanner()

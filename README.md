@@ -114,3 +114,17 @@ Optional:
 - Notiz
 
 Dienstleister und Arbeitsbereich müssen vor dem Import bereits angelegt sein.
+
+
+## Version 13 – Komfort, Warnungen und Visualisierung
+
+- eigener Bereich „Analysen & Warnungen“
+- automatische Budget-, Konzentrations- und Preiswarnungen
+- Kostenverlaufsdiagramm für zwölf Monate
+- Plan-Ist-Balkendiagramm
+- Kostenverteilung der Dienstleister als Ringdiagramm
+- optionale Browser-Benachrichtigungen
+- PWA-Installationsschaltfläche, sofern der Browser sie anbietet
+- Online-/Offline-Anzeige und verbesserter Service Worker
+- manuelles Aktualisieren der Analysedaten
+- keine neue Supabase-Migration erforderlich

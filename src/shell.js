@@ -12,13 +12,13 @@ export function renderShell(renderCurrentView) {
   app.innerHTML = `<div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot</strong><small>Secure Cloud</small></div></div>
-      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}${navButton('reports', 'Berichte & Import')}</nav>
+      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}${navButton('reports', 'Berichte & Import')}${navButton('insights', 'Analysen & Warnungen')}</nav>
       <div class="sidebar-footer"><div class="user-chip">${state.session.user.email}<br><span class="sync-state">● Live-Synchronisierung</span></div><button id="logout" class="secondary">Abmelden</button></div>
     </aside>
     <main class="main">
       <header class="topbar">
         <div style="display:flex;gap:10px"><button id="menu" class="secondary mobile-menu">☰</button><div><h1 id="title"></h1><p id="subtitle"></p></div></div>
-        <div class="actions">
+        <div class="actions"><button id="installApp" class="secondary install-button" hidden>App installieren</button>
           <select id="yearSelect">${Array.from({ length: 9 }, (_, index) => new Date().getFullYear() - 4 + index).map(year => `<option ${year === state.selectedYear ? 'selected' : ''}>${year}</option>`).join('')}</select>
           <select id="monthSelect">${months.map((month, index) => `<option value="${index + 1}" ${index + 1 === state.selectedMonth ? 'selected' : ''}>${month}</option>`).join('')}</select>
         </div>
@@ -26,6 +26,16 @@ export function renderShell(renderCurrentView) {
       <section id="content"></section>
     </main>
   </div>`
+
+  const installButton = document.querySelector('#installApp')
+  if (state.installPrompt && installButton) installButton.hidden = false
+  installButton?.addEventListener('click', async () => {
+    if (!state.installPrompt) return
+    state.installPrompt.prompt()
+    await state.installPrompt.userChoice
+    state.installPrompt = null
+    installButton.hidden = true
+  })
 
   document.querySelector('#logout').addEventListener('click', () => signOut())
   document.querySelector('#menu').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'))
@@ -75,7 +85,8 @@ export function updateShellHeader() {
     dashboard: ['Übersicht', 'Monat, Dienstleister, Kosten, Stunden und Plan auf einen Blick.'],
     entry: ['Zeiterfassung', 'Stunden für alle Dienstleister wochenweise erfassen.'],
     vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.'],
-    reports: ['Berichte & Import', 'PDF, Excel, Import und Datensicherung.']
+    reports: ['Berichte & Import', 'PDF, Excel, Import und Datensicherung.'],
+    insights: ['Analysen & Warnungen', 'Diagramme, Warnungen und Komfortstatus.']
   }
   document.querySelectorAll('.nav-btn').forEach(button => button.classList.toggle('active', button.dataset.view === state.selectedView))
   const [title, subtitle] = titles[state.selectedView] || titles.dashboard
