@@ -42,8 +42,8 @@ function passwordDialog(user, rerender) {
     const password = modal.querySelector('#managedPassword').value
     const repeat = modal.querySelector('#managedPasswordRepeat').value
     if (password !== repeat) return toast('Die Passwörter stimmen nicht überein.')
-    const button = event.currentTarget.querySelector('button[type="submit"]')
-    button.disabled = true
+    const button = event.currentTarget.querySelector('button[type="submit"]') || event.currentTarget.querySelector('button.primary')
+    if (button) button.disabled = true
     try {
       await adminRequest('password', { user_id: user.id, password })
       modal.remove()
@@ -51,7 +51,7 @@ function passwordDialog(user, rerender) {
       await rerender()
     } catch (error) {
       toast(error.message)
-      button.disabled = false
+      if (button) button.disabled = false
     }
   })
 }
@@ -96,9 +96,11 @@ export async function renderAdmin() {
       const password = document.querySelector('#newUserPassword').value
       const repeat = document.querySelector('#newUserPasswordRepeat').value
       if (password !== repeat) return toast('Die Passwörter stimmen nicht überein.')
-      const button = event.currentTarget.querySelector('button[type="submit"]')
-      button.disabled = true
-      button.textContent = 'Benutzer wird angelegt …'
+      const button = event.currentTarget.querySelector('button[type="submit"]') || event.currentTarget.querySelector('button.primary')
+      if (button) {
+        button.disabled = true
+        button.textContent = 'Benutzer wird angelegt …'
+      }
       try {
         await adminRequest('create', {
           full_name: document.querySelector('#newUserName').value.trim(),
@@ -109,7 +111,7 @@ export async function renderAdmin() {
         await renderAdmin()
       } catch (error) {
         toast(error.message)
-        button.disabled = false
+        if (button) button.disabled = false
         button.textContent = 'Benutzer anlegen'
       }
     })

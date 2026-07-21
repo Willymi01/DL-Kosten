@@ -199,3 +199,14 @@ V15 entfernt die Abhängigkeit von der Edge Function `admin-users`.
 - Doppelte Auth-Ereignisse starten die Anwendung nicht mehr parallel.
 - Fehlende Profile bestehender Auth-Benutzer werden durch Migration 006 repariert.
 - Benutzerverwaltung mit direkter Admin-Erstellung bleibt erhalten.
+
+
+## Version 16.1 – Formularstabilität
+
+Behoben:
+
+- Login-Button besitzt jetzt immer `type="submit"`
+- Passwort-Formular besitzt jetzt immer `type="submit"`
+- Formularlogik bricht nicht mehr ab, wenn ein Button im DOM nicht gefunden wird
+- bessere Fehlermeldung bei unerwarteten Loginfehlern
+- keine neue Supabase-Migration notwendig
