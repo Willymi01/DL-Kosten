@@ -1,5 +1,5 @@
 import { state } from './state.js'
-import { months, weekForMonth } from './utils.js'
+import { months, weekForMonth, isoWeek, isoWeekYear } from './utils.js'
 import { refreshPeriod } from './store.js'
 import { signOut } from './auth.js'
 
@@ -44,10 +44,13 @@ export function renderShell(renderCurrentView) {
     state.selectedView = button.dataset.view
     state.renderGeneration += 1
     if (state.selectedView === 'entry') {
-      const target = weekForMonth(state.selectedYear, state.selectedMonth)
-      state.selectedYear = target.year
-      state.selectedWeek = target.week
+      const today = new Date()
+      state.selectedYear = isoWeekYear(today)
+      state.selectedWeek = isoWeek(today)
+      state.selectedMonth = today.getMonth() + 1
       document.querySelector('#yearSelect').value = String(state.selectedYear)
+      document.querySelector('#monthSelect').value = String(state.selectedMonth)
+      await refreshPeriod()
     }
     document.querySelector('.sidebar').classList.remove('open')
     await renderCurrentView()

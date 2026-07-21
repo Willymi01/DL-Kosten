@@ -128,3 +128,8 @@ Dienstleister und Arbeitsbereich müssen vor dem Import bereits angelegt sein.
 - Online-/Offline-Anzeige und verbesserter Service Worker
 - manuelles Aktualisieren der Analysedaten
 - keine neue Supabase-Migration erforderlich
+
+
+## Version 13.1 – Aktuelle Woche beim Öffnen
+
+Beim Wechsel in die Zeiterfassung springt CostPilot jetzt immer automatisch auf die aktuelle ISO-Kalenderwoche. Jahr und Monat werden ebenfalls auf das aktuelle Datum gesetzt. Manuell ausgewählte vergangene oder zukünftige Wochen können danach weiterhin wie gewohnt bearbeitet werden.
