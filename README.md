@@ -155,3 +155,22 @@ Beim Wechsel in die Zeiterfassung springt CostPilot jetzt immer automatisch auf 
 4. App neu deployen und einmal vollständig neu laden.
 
 Die Edge Function verwendet den automatisch verfügbaren `SUPABASE_SERVICE_ROLE_KEY`. Dieser Schlüssel darf niemals in die Web-App oder in `.env` übernommen werden.
+
+
+## Version 15 – stabile Teamverwaltung
+
+V15 entfernt die Abhängigkeit von der Edge Function `admin-users`.
+
+- Admins erzeugen sieben Tage gültige Einmal-Einladungslinks.
+- Eingeladene Benutzer legen ihr Passwort selbst fest.
+- Nicht eingeladene Registrierungen werden vom Datenbank-Trigger abgewiesen.
+- Zugänge können gesperrt und reaktiviert werden.
+- Passwortänderungen laufen über Supabase Reset-E-Mails.
+- Bestehende Auth-Benutzer werden durch Migration 004 automatisch als Administratoren nachgetragen.
+
+### Einmalige Aktualisierung
+
+1. `supabase/migrations/004_v15_invitation_access.sql` vollständig im Supabase SQL Editor ausführen.
+2. Unter Authentication > Providers > Email muss `Allow new users to sign up` aktiviert sein. Unbefugte Registrierungen werden trotzdem vom Einladungs-Trigger blockiert.
+3. V15 auf GitHub Pages veröffentlichen und die App mit Strg+F5 neu laden.
+4. Die alte Edge Function `admin-users` wird nicht mehr benötigt und kann gelöscht werden.

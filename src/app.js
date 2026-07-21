@@ -56,7 +56,9 @@ async function renderCurrentView(forceRefresh = false) {
 
 async function loadApp() {
   const { data: profile, error: profileError } = await getProfile()
-  if (profileError || !profile?.active) throw new Error('Dieser Zugang ist nicht aktiv.')
+  if (profileError) throw profileError
+  if (!profile) throw new Error('Für diesen Zugang fehlt das Profil. Bitte Migration 004 ausführen.')
+  if (!profile.active) throw new Error('Dieser Zugang wurde durch den Administrator gesperrt.')
   state.profile = profile
   await refreshData()
   state.lastUpdated = new Date().toISOString()
@@ -95,7 +97,7 @@ async function boot() {
       return
     }
     if (!state.session) authScreen()
-    else await loadApp()
+    else { try { await loadApp() } catch (error) { console.error(error); authScreen('login', error.message) } }
   })
 
   if (state.session) await loadApp()

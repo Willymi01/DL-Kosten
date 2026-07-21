@@ -107,3 +107,6 @@
 .role-badge{width:max-content;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#e2e8f0}.role-badge.admin{background:#dbeafe;color:#1d4ed8}
 .danger{background:#fff;border:1px solid #fecaca;color:#b91c1c}.danger:hover{background:#fef2f2}
 @media(max-width:900px){.admin-grid{grid-template-columns:1fr}.managed-user{align-items:flex-start;flex-direction:column}}
+
+.invite-result{display:grid;gap:10px;margin-top:18px;padding:14px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe}
+.invite-result p{margin:0;color:#475569}.invite-result input{width:100%;font-size:13px}.invite-result small{color:#64748b}

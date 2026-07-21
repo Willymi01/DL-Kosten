@@ -90,7 +90,7 @@ export function updateShellHeader() {
     vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.'],
     reports: ['Berichte & Import', 'PDF, Excel, Import und Datensicherung.'],
     insights: ['Analysen & Warnungen', 'Diagramme, Warnungen und Komfortstatus.'],
-    admin: ['Benutzerverwaltung', 'Zugänge anlegen, Passwörter setzen und Benutzer entfernen.']
+    admin: ['Benutzerverwaltung', 'Einladungen erstellen, Zugänge sperren und Passwörter zurücksetzen.']
   }
   document.querySelectorAll('.nav-btn').forEach(button => button.classList.toggle('active', button.dataset.view === state.selectedView))
   const [title, subtitle] = titles[state.selectedView] || titles.dashboard
