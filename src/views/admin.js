@@ -32,7 +32,7 @@ function passwordDialog(user, rerender) {
     <form id="passwordForm" class="form-grid">
       <label>Neues Passwort<input id="managedPassword" type="password" minlength="10" autocomplete="new-password" required></label>
       <label>Passwort wiederholen<input id="managedPasswordRepeat" type="password" minlength="10" autocomplete="new-password" required></label>
-      <div class="modal-actions"><button type="button" id="cancelPassword" class="secondary">Abbrechen</button><button class="primary">Passwort speichern</button></div>
+      <div class="modal-actions"><button type="button" id="cancelPassword" class="secondary">Abbrechen</button><button type="submit" class="primary">Passwort speichern</button></div>
     </form>
   </div>`
   document.body.append(modal)
@@ -71,7 +71,7 @@ export async function renderAdmin() {
           <label>E-Mail<input id="newUserEmail" type="email" autocomplete="off" required></label>
           <label>Startpasswort<input id="newUserPassword" type="password" minlength="10" autocomplete="new-password" required></label>
           <label>Passwort wiederholen<input id="newUserPasswordRepeat" type="password" minlength="10" autocomplete="new-password" required></label>
-          <button class="primary">Benutzer anlegen</button>
+          <button type="submit" class="primary">Benutzer anlegen</button>
         </form>
         <p class="muted"><small>Das Passwort muss mindestens 10 Zeichen lang sein. Der Benutzer sollte es nach der ersten Anmeldung ändern.</small></p>
       </article>

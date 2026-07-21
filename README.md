@@ -183,3 +183,11 @@ V15 entfernt die Abhängigkeit von der Edge Function `admin-users`.
 - Passwörter können vom Admin gesetzt werden.
 - Zugänge können gesperrt, reaktiviert und entfernt werden.
 - Einrichtung: siehe `INSTALLATION_V15_1.md`.
+
+
+## Version 15.2 – Formularfehler behoben
+
+- „Benutzer anlegen“ funktioniert wieder.
+- „Passwort setzen“ funktioniert wieder.
+- Submit-Schaltflächen sind nun explizit als `type="submit"` definiert.
+- Keine neue SQL-Migration und keine Änderung an der Edge Function erforderlich.
