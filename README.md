@@ -191,3 +191,11 @@ V15 entfernt die Abhängigkeit von der Edge Function `admin-users`.
 - „Passwort setzen“ funktioniert wieder.
 - Submit-Schaltflächen sind nun explizit als `type="submit"` definiert.
 - Keine neue SQL-Migration und keine Änderung an der Edge Function erforderlich.
+
+## Version 16 – stabile Mehrbenutzer-Anmeldung
+
+- Profilabfrage ist eindeutig an die angemeldete Benutzer-ID gebunden.
+- Mehrere Teammitglieder verursachen keinen `.maybeSingle()`-Fehler mehr.
+- Doppelte Auth-Ereignisse starten die Anwendung nicht mehr parallel.
+- Fehlende Profile bestehender Auth-Benutzer werden durch Migration 006 repariert.
+- Benutzerverwaltung mit direkter Admin-Erstellung bleibt erhalten.

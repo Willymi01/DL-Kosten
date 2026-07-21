@@ -54,8 +54,12 @@ async function renderCurrentView(forceRefresh = false) {
   }
 }
 
-async function loadApp() {
-  const { data: profile, error: profileError } = await getProfile()
+let appLoadPromise = null
+
+async function loadAppInternal() {
+  const userId = state.session?.user?.id
+  if (!userId) throw new Error('Keine gültige Sitzung gefunden. Bitte erneut anmelden.')
+  const { data: profile, error: profileError } = await getProfile(userId)
   if (profileError) throw profileError
   if (!profile) throw new Error('Für diesen Zugang fehlt das Profil. Bitte Migration 004 ausführen.')
   if (!profile.active) throw new Error('Dieser Zugang wurde durch den Administrator gesperrt.')
@@ -79,6 +83,16 @@ async function loadApp() {
       }
     }, 350)
   })
+}
+
+async function loadApp() {
+  if (appLoadPromise) return appLoadPromise
+  appLoadPromise = loadAppInternal()
+  try {
+    return await appLoadPromise
+  } finally {
+    appLoadPromise = null
+  }
 }
 
 async function boot() {

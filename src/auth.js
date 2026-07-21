@@ -13,7 +13,6 @@ export async function sendReset(email) {
   return supabase.auth.resetPasswordForEmail(email, { redirectTo })
 }
 
-
 export async function updatePassword(password) {
   return supabase.auth.updateUser({ password })
 }
@@ -26,6 +25,13 @@ export function onAuthChange(callback) {
   return supabase.auth.onAuthStateChange(callback)
 }
 
-export async function getProfile() {
-  return supabase.from('profiles').select('id, account_id, full_name, email, role, active').maybeSingle()
+export async function getProfile(userId) {
+  if (!userId) return { data: null, error: new Error('Die Benutzer-ID fehlt.') }
+
+  return supabase
+    .from('profiles')
+    .select('id, account_id, full_name, email, role, active')
+    .eq('id', userId)
+    .limit(1)
+    .maybeSingle()
 }
