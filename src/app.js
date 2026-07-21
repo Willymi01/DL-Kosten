@@ -1,6 +1,6 @@
 import './styles.css'
 import { configured, supabase } from './supabase.js'
-import { getSession, onAuthChange } from './auth.js'
+import { getSession, getProfile, onAuthChange } from './auth.js'
 import { subscribeToChanges } from './data.js'
 import { state } from './state.js'
 import { isoWeek, toast } from './utils.js'
@@ -12,6 +12,7 @@ import { renderEntry } from './views/entry.js'
 import { renderVendors } from './views/vendors.js'
 import { renderReports } from './views/reports.js'
 import { renderInsights } from './views/insights.js'
+import { renderAdmin } from './views/admin.js'
 
 state.selectedWeek = isoWeek(new Date())
 
@@ -33,6 +34,11 @@ async function renderCurrentView(forceRefresh = false) {
       renderInsights({ renderCurrentView })
       return
     }
+    if (state.selectedView === 'admin') {
+      if (state.profile?.role !== 'admin') throw new Error('Nur Administratoren dürfen diese Seite öffnen.')
+      await renderAdmin()
+      return
+    }
     if (state.selectedView === 'reports') {
       renderReports({ renderCurrentView })
       return
@@ -49,6 +55,9 @@ async function renderCurrentView(forceRefresh = false) {
 }
 
 async function loadApp() {
+  const { data: profile, error: profileError } = await getProfile()
+  if (profileError || !profile?.active) throw new Error('Dieser Zugang ist nicht aktiv.')
+  state.profile = profile
   await refreshData()
   state.lastUpdated = new Date().toISOString()
   renderShell(renderCurrentView)

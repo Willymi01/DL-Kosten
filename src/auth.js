@@ -4,14 +4,6 @@ export async function signIn(email, password) {
   return supabase.auth.signInWithPassword({ email, password })
 }
 
-export async function signUp(email, password, fullName) {
-  return supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: fullName } }
-  })
-}
-
 export async function signOut() {
   return supabase.auth.signOut()
 }
@@ -31,4 +23,8 @@ export async function getSession() {
 
 export function onAuthChange(callback) {
   return supabase.auth.onAuthStateChange(callback)
+}
+
+export async function getProfile() {
+  return supabase.from('profiles').select('id, account_id, full_name, email, role, active').single()
 }

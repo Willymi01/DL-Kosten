@@ -133,3 +133,25 @@ Dienstleister und Arbeitsbereich müssen vor dem Import bereits angelegt sein.
 ## Version 13.1 – Aktuelle Woche beim Öffnen
 
 Beim Wechsel in die Zeiterfassung springt CostPilot jetzt immer automatisch auf die aktuelle ISO-Kalenderwoche. Jahr und Monat werden ebenfalls auf das aktuelle Datum gesetzt. Manuell ausgewählte vergangene oder zukünftige Wochen können danach weiterhin wie gewohnt bearbeitet werden.
+
+## Version 14 – Admin-verwaltete Teamzugänge
+
+- öffentliche Selbstregistrierung entfernt
+- vorhandener erster Benutzer wird durch Migration 003 zum Administrator
+- Administrator kann weitere Benutzer anlegen
+- Administrator kann Benutzerpasswörter setzen und Benutzer entfernen
+- alle Benutzer eines Accounts arbeiten im selben Datenbestand
+- RLS bleibt aktiv; Daten sind nicht öffentlich zugänglich
+- Stundenlimit auf 1.000 je Eintrag erweitert
+
+### Einrichtung in Supabase
+
+1. Im SQL Editor `supabase/migrations/003_admin_team_access.sql` ausführen.
+2. Die Edge Function bereitstellen:
+   ```bash
+   supabase functions deploy admin-users
+   ```
+3. In Supabase Auth die öffentliche Registrierung deaktivieren: **Authentication → Providers → Email → Allow new users to sign up** ausschalten.
+4. App neu deployen und einmal vollständig neu laden.
+
+Die Edge Function verwendet den automatisch verfügbaren `SUPABASE_SERVICE_ROLE_KEY`. Dieser Schlüssel darf niemals in die Web-App oder in `.env` übernommen werden.

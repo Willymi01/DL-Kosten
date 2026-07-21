@@ -1,38 +1,30 @@
 import { configured } from './supabase.js'
-import { signIn, signUp, sendReset, updatePassword } from './auth.js'
+import { signIn, sendReset, updatePassword } from './auth.js'
 import { toast } from './utils.js'
 
 const app = document.querySelector('#app')
 
 export function authScreen(mode = 'login', message = '') {
   app.innerHTML = `<main class="auth-shell"><section class="auth-card">
-    <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot Secure</strong><small>Geschütztes Kostencontrolling</small></div></div>
+    <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot</strong><small>Admin-verwalteter Zugang</small></div></div>
     ${!configured ? '<div class="message">Supabase ist noch nicht konfiguriert.</div>' : ''}
-    <div class="auth-tabs"><button id="tabLogin" class="${mode === 'login' ? 'active' : ''}">Anmelden</button><button id="tabSignup" class="${mode === 'signup' ? 'active' : ''}">Registrieren</button></div>
     ${message ? `<div class="message">${message}</div>` : ''}
     <form id="authForm" class="form-grid">
-      ${mode === 'signup' ? '<label>Name<input id="fullName" required></label>' : ''}
-      <label>E-Mail<input id="email" type="email" required></label>
-      <label>Passwort<input id="password" type="password" minlength="10" required></label>
-      <button class="primary" ${!configured ? 'disabled' : ''}>${mode === 'login' ? 'Sicher anmelden' : 'Konto erstellen'}</button>
-      ${mode === 'login' ? '<button id="resetBtn" type="button" class="link-btn">Passwort vergessen?</button>' : ''}
+      <label>E-Mail<input id="email" type="email" autocomplete="username" required></label>
+      <label>Passwort<input id="password" type="password" minlength="10" autocomplete="current-password" required></label>
+      <button class="primary" ${!configured ? 'disabled' : ''}>Anmelden</button>
+      <button id="resetBtn" type="button" class="link-btn">Passwort vergessen?</button>
     </form>
+    <p class="auth-note">Neue Zugänge werden ausschließlich durch den Administrator angelegt.</p>
   </section></main>`
 
-  document.querySelector('#tabLogin').addEventListener('click', () => authScreen('login'))
-  document.querySelector('#tabSignup').addEventListener('click', () => authScreen('signup'))
   document.querySelector('#authForm').addEventListener('submit', async event => {
     event.preventDefault()
-    const email = document.querySelector('#email').value.trim()
-    const password = document.querySelector('#password').value
-    const result = mode === 'login'
-      ? await signIn(email, password)
-      : await signUp(email, password, document.querySelector('#fullName').value.trim())
-    if (result.error) return authScreen(mode, result.error.message)
-    if (mode === 'signup' && !result.data.session) authScreen('login', 'Bitte bestätige deine E-Mail.')
+    const result = await signIn(document.querySelector('#email').value.trim(), document.querySelector('#password').value)
+    if (result.error) authScreen('login', result.error.message)
   })
 
-  document.querySelector('#resetBtn')?.addEventListener('click', async () => {
+  document.querySelector('#resetBtn').addEventListener('click', async () => {
     const email = document.querySelector('#email').value.trim()
     if (!email) return toast('Bitte E-Mail eintragen.')
     const { error } = await sendReset(email)

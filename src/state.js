@@ -1,5 +1,6 @@
 export const state = {
   session: null,
+  profile: null,
   vendors: [],
   entries: [],
   yearEntries: [],

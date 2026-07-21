@@ -12,8 +12,8 @@ export function renderShell(renderCurrentView) {
   app.innerHTML = `<div class="app-shell">
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">CP</div><div><strong>CostPilot</strong><small>Secure Cloud</small></div></div>
-      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}${navButton('reports', 'Berichte & Import')}${navButton('insights', 'Analysen & Warnungen')}</nav>
-      <div class="sidebar-footer"><div class="user-chip">${state.session.user.email}<br><span class="sync-state">● Live-Synchronisierung</span></div><button id="logout" class="secondary">Abmelden</button></div>
+      <nav>${navButton('dashboard', 'Übersicht')}${navButton('entry', 'Zeiterfassung')}${navButton('vendors', 'Dienstleister & Preise')}${navButton('reports', 'Berichte & Import')}${navButton('insights', 'Analysen & Warnungen')}${state.profile?.role === 'admin' ? navButton('admin', 'Benutzerverwaltung') : ''}</nav>
+      <div class="sidebar-footer"><div class="user-chip">${state.profile?.full_name || state.session.user.email}<br><small>${state.profile?.role === 'admin' ? 'Administrator' : state.session.user.email}</small><br><span class="sync-state">● Live-Synchronisierung</span></div><button id="logout" class="secondary">Abmelden</button></div>
     </aside>
     <main class="main">
       <header class="topbar">
@@ -89,7 +89,8 @@ export function updateShellHeader() {
     entry: ['Zeiterfassung', 'Stunden für alle Dienstleister wochenweise erfassen.'],
     vendors: ['Dienstleister & Preise', 'Firmen, Arbeitsbereiche und zeitabhängige Preise verwalten.'],
     reports: ['Berichte & Import', 'PDF, Excel, Import und Datensicherung.'],
-    insights: ['Analysen & Warnungen', 'Diagramme, Warnungen und Komfortstatus.']
+    insights: ['Analysen & Warnungen', 'Diagramme, Warnungen und Komfortstatus.'],
+    admin: ['Benutzerverwaltung', 'Zugänge anlegen, Passwörter setzen und Benutzer entfernen.']
   }
   document.querySelectorAll('.nav-btn').forEach(button => button.classList.toggle('active', button.dataset.view === state.selectedView))
   const [title, subtitle] = titles[state.selectedView] || titles.dashboard
