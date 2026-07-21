@@ -13,13 +13,6 @@ export async function sendReset(email) {
   return supabase.auth.resetPasswordForEmail(email, { redirectTo })
 }
 
-export async function signUpWithInvite(email, password, inviteToken) {
-  return supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { invite_token: inviteToken } }
-  })
-}
 
 export async function updatePassword(password) {
   return supabase.auth.updateUser({ password })

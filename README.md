@@ -174,3 +174,12 @@ V15 entfernt die Abhängigkeit von der Edge Function `admin-users`.
 2. Unter Authentication > Providers > Email muss `Allow new users to sign up` aktiviert sein. Unbefugte Registrierungen werden trotzdem vom Einladungs-Trigger blockiert.
 3. V15 auf GitHub Pages veröffentlichen und die App mit Strg+F5 neu laden.
 4. Die alte Edge Function `admin-users` wird nicht mehr benötigt und kann gelöscht werden.
+
+
+## Version 15.1 – direkte Benutzeranlage
+
+- Benutzer werden vom Admin mit Name, E-Mail und Startpasswort angelegt.
+- Keine Einladungslinks und keine E-Mail-Bestätigung.
+- Passwörter können vom Admin gesetzt werden.
+- Zugänge können gesperrt, reaktiviert und entfernt werden.
+- Einrichtung: siehe `INSTALLATION_V15_1.md`.
